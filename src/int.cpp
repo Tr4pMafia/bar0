@@ -32,20 +32,21 @@ namespace mafia
 {
 namespace intel_x64
 {
-
-static std::vector<uint64_t> original_ia32_lstar(13);
-
+std::once_flag flag{};
 class mafia_vcpu : public bfvmm::intel_x64::vcpu
 {
 public:
     mafia_vcpu(vcpuid::type id)
     : bfvmm::intel_x64::vcpu{id}
     {
-        auto phys_range_1 = std::make_pair((uintptr_t)E1000E_BAR0, (size_t)4096);
-        auto list = {phys_range_1};
-        auto beef = bfvmm::x64::make_unique_map<uint32_t>(list);
-        bfdebug_nhex(0, "address", beef.get());
-        bfdebug_nhex(0, "value", *beef);
+        std::call_once(flag, [&] {
+            auto phys_range_1 = std::make_pair((uintptr_t)E1000E_BAR0, (size_t)4096);
+            auto list = {phys_range_1};
+            auto beef = bfvmm::x64::make_unique_map<uint32_t>(list);
+            auto ptr = beef.get();
+            bfdebug_nhex(0, "address", ptr);
+            //bfdebug_nhex(0, "phy", g_mm->physint_to_virtptr((uintptr_t)E1000E_BAR0));
+        });
     }
     ~mafia_vcpu() = default;
 };
