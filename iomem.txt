@@ -1,0 +1,4 @@
+moly@yayoi:~$ sudo cat /proc/iomem | grep e1000e
+[sudo] password for moly: 
+    fb300000-fb31ffff : e1000e
+    fb328000-fb328fff : e1000e
