@@ -17,6 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 #include <bfvmm/hve/arch/intel_x64/vcpu.h>
+#include <bfvmm/hve/arch/intel_x64/exit_handler.h>
 #include <bfvmm/vcpu/vcpu.h>
 #include <bfdebug.h>
 #include <bfvmm/vcpu/vcpu_factory.h>
@@ -63,11 +64,12 @@ public:
     : bfvmm::intel_x64::vcpu{id}
     {
         std::call_once(flag, [&] {
-            auto audio = bfvmm::x64::make_unique_map<uint32_t>(ICH_AUDIO_BAR0);
+            bfdebug_nhex(0, "mafia vcpu cr3", ::bfvmm::x64::s_mmap.cr3());
+            auto audio = bfvmm::x64::make_unique_map<char>(ICH_AUDIO_BAR0);
             auto audio_pointer = audio.get();
             
             // TODO: gsl::span to wrap it
-            bfdebug_nhex(0, "audio mmio regs", audio_pointer[0]);
+            //bfdebug_nhex(0, "audio mmio regs", audio_pointer[0]);
 
 
             /*
