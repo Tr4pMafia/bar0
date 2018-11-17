@@ -25,8 +25,31 @@
 #include <string>
 #include <vector>
 #include <bfvmm/memory_manager/arch/x64/unique_map.h>
+#include <intrinsics.h>
 
-#define E1000E_BAR0 0xfb300000
+/*
+moly@yayoi:~$ sudo cat /proc/iomem
+[sudo] password for moly: 
+00000000-00000fff : Reserved
+...
+  fa000000-fb0fffff : PCI Bus 0000:02
+    fa000000-faffffff : 0000:02:00.0
+    fb080000-fb083fff : 0000:02:00.1
+      fb080000-fb083fff : ICH HD audio
+  fb100000-fb1fffff : PCI Bus 0000:06
+    fb100000-fb13ffff : 0000:06:00.0
+    fb140000-fb14ffff : 0000:06:00.0
+      fb140000-fb14ffff : tg3
+  fb200000-fb2fffff : PCI Bus 0000:05
+    fb200000-fb201fff : 0000:05:00.0
+      fb200000-fb201fff : xhci-hcd
+  fb300000-fb31ffff : 0000:00:19.0
+    fb300000-fb31ffff : e1000e
+...
+*/
+
+#define E1000E_BAR0    0xfb300000    // Guest Physical Address
+#define ICH_AUDIO_BAR0 0xfb080000    // Guest Physical Address
 
 namespace mafia
 {
@@ -40,12 +63,31 @@ public:
     : bfvmm::intel_x64::vcpu{id}
     {
         std::call_once(flag, [&] {
-            auto phys_range_1 = std::make_pair((uintptr_t)E1000E_BAR0, (size_t)4096);
-            auto list = {phys_range_1};
-            auto beef = bfvmm::x64::make_unique_map<uint32_t>(list);
-            auto ptr = beef.get();
-            bfdebug_nhex(0, "address", ptr);
-            //bfdebug_nhex(0, "phy", g_mm->physint_to_virtptr((uintptr_t)E1000E_BAR0));
+            auto audio = bfvmm::x64::make_unique_map<uint32_t>(ICH_AUDIO_BAR0);
+            auto audio_pointer = audio.get();
+            
+            // TODO: gsl::span to wrap it
+            bfdebug_nhex(0, "audio mmio regs", audio_pointer[0]);
+
+
+            /*
+            moly@yayoi:~/lab$ sudo ./mem fb080000 100 | hexdump -x
+            0000000    4405    0100    003c    001d    0101    0000    0000    0000
+            0000010    0000    0000    0000    0000    0000    0000    0000    0000
+            0000020    0000    c000    0000    0000    0000    0000    0000    0000
+            0000030    3482    9266    0000    0000    0000    0000    0000    0000
+            0000040    5000    5642    0004    0000    0037    0037    0002    0042
+            0000050    5800    5642    0004    0000    0037    0001    0003    0042
+            0000060    0000    0000    0000    0000    0002    0000    0000    0000
+            0000070    4001    5642    0004    0000    0000    0000    0000    0000
+            0000080    0000    0000    0000    0000    0000    0000    0000    0000
+            0000090    0028    0000    0000    0000    0000    0000    0000    0000
+            00000a0    0000    0000    0000    0000    0000    0000    0000    0000
+            00000b0    0028    0000    0000    0000    0000    0000    0000    0000
+            00000c0    0000    0000    0000    0000    0000    0000    0000    0000
+            00000d0    0028    0000    0000    0000    0000    0000    0000    0000
+            00000e0    0000    0000    0000    0000    0000    0000    0000    0000
+            */
         });
     }
     ~mafia_vcpu() = default;
