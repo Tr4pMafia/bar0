@@ -66,7 +66,7 @@ public:
         std::call_once(flag, [&] {
             auto audio = bfvmm::x64::make_unique_map<char>(ICH_AUDIO_BAR0);
             auto audio_pointer = audio.get();
-            bfdebug_nhex(0, "audio mmio unique gmm physint", g_mm->virtptr_to_physint(&audio_pointer[2]));
+            //bfdebug_nhex(0, "audio mmio unique gmm physint", g_mm->virtptr_to_physint(&audio_pointer[0]));
             bfdebug_nhex(0, "audio mmio regs", audio_pointer);
             
             // TODO: gsl::span to wrap it
